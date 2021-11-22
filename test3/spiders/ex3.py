@@ -12,42 +12,21 @@ class Ex3Spider(scrapy.Spider):
         for i in range(1,21):
             yield scrapy.Request(url=base.format(i) , callback=self.parse_title)
 
-    
-    
+
     def parse_title(self, response):
         data = response.json()
         for info in data['items']:
-            path = info["full_path"]
-            url = domain+path
-            yield scrapy.Request(url , callback=self.parse_nlink)
+            path = info["offers"][0]['urls']['standard_web']
+            yield scrapy.Request(path , callback=self.parse_url)
     
-    def parse_nlink(self, response):
-        try:
-            nlink1= response.xpath('//*[@id="base"]/div[2]/div/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]/div[2]/div[1]/div/a/@href').extract()[0]
-            if 'netflix' in nlink1:
-                yield scrapy.Request(nlink1 , callback=self.parse_url)
-            else: #넷플릭스이외인경우
-                nlink2 = response.xpath('//*[@id="base"]/div[2]/div/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]/div[2]/div[2]/div/a/@href').extract()[0]
-                if 'netflix' in nlink2:
-                    yield scrapy.Request(nlink2 , callback=self.parse_url)
-                else: 
-                    nlink3 = response.xpath('//*[@id="base"]/div[2]/div/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]/div[2]/div[3]/div/a/@href').extract()[0]
-                    if 'netflix' in nlink3:
-                        yield scrapy.Request(nlink3 , callback=self.parse_url)
-        except IndexError:
-                nlink4 = response.xpath('//*[@id="base"]/div[2]/div/div[2]/div[2]/div[2]/div[1]/div[2]/div/div[2]/div[2]/div/div/a/@href').extract()[0]
-                if 'netflix' in nlink4:
-                    yield scrapy.Request(nlink4 , callback=self.parse_url)
-                    
                 
     def parse_url(self, response):
         elink = response.url # english version
         if '-en' in elink:
-            link = elink.replace("-en","")        #링크가 kr-en에서  -en을 빼면 한국버전
+            link = elink.replace("-en","-kr")        #링크가 kr-en에서  -en을 빼면 한국버전
             yield scrapy.Request(link , callback=self.parse_info)
         
         
-
     def parse_info(self, response):
         item = Test3Item()
         item["title"] =response.xpath('//*[@id="section-hero"]/div[1]/div[1]/div[2]/div/h1/text()').extract()[0]
