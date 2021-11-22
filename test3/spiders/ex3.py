@@ -6,11 +6,14 @@ base = 'https://apis.justwatch.com/content/titles/ko_KR/popular?body=%7B%22field
 domain = 'https://www.justwatch.com'
 class Ex3Spider(scrapy.Spider):
     name = 'ex3.py'
-   
+    
     def start_requests(self):
+        
         for i in range(1,21):
             yield scrapy.Request(url=base.format(i) , callback=self.parse_title)
 
+    
+    
     def parse_title(self, response):
         data = response.json()
         for info in data['items']:
@@ -19,31 +22,35 @@ class Ex3Spider(scrapy.Spider):
             yield scrapy.Request(url , callback=self.parse_nlink)
     
     def parse_nlink(self, response):
-        nlink1= response.xpath('//*[@id="base"]/div[2]/div/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]/div[2]/div[1]/div/a/@href').extract()[0]
-        if 'www.netflix.com' in nlink1:
-            yield scrapy.Request(nlink1 , callback=self.parse_url)
-        #넷플릭스이외인경우
-        else: 
-            nlink2 = response.xpath('//*[@id="base"]/div[2]/div/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]/div[2]/div[2]/div/a/@href').extract()[0]
-            if 'www.netflix.com' in nlink2:
-                yield scrapy.Request(nlink2 , callback=self.parse_url)
-            else: 
-                nlink3 = response.xpath('//*[@id="base"]/div[2]/div/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]/div[2]/div[3]/div/a/@href').extract()[0]
-                if 'netflix' in nlink:
-                    yield scrapy.Request(nlink3 , callback=self.parse_url)
-                else: return 0
+        try:
+            nlink1= response.xpath('//*[@id="base"]/div[2]/div/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]/div[2]/div[1]/div/a/@href').extract()[0]
+            if 'netflix' in nlink1:
+                yield scrapy.Request(nlink1 , callback=self.parse_url)
+            else: #넷플릭스이외인경우
+                nlink2 = response.xpath('//*[@id="base"]/div[2]/div/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]/div[2]/div[2]/div/a/@href').extract()[0]
+                if 'netflix' in nlink2:
+                    yield scrapy.Request(nlink2 , callback=self.parse_url)
+                else: 
+                    nlink3 = response.xpath('//*[@id="base"]/div[2]/div/div[2]/div[2]/div[3]/div[1]/div[2]/div/div[2]/div[2]/div[3]/div/a/@href').extract()[0]
+                    if 'netflix' in nlink3:
+                        yield scrapy.Request(nlink3 , callback=self.parse_url)
+        except IndexError:
+                nlink4 = response.xpath('//*[@id="base"]/div[2]/div/div[2]/div[2]/div[2]/div[1]/div[2]/div/div[2]/div[2]/div/div/a/@href').extract()[0]
+                if 'netflix' in nlink4:
+                    yield scrapy.Request(nlink4 , callback=self.parse_url)
+                    
                 
     def parse_url(self, response):
         elink = response.url # english version
         if '-en' in elink:
             link = elink.replace("-en","")        #링크가 kr-en에서  -en을 빼면 한국버전
             yield scrapy.Request(link , callback=self.parse_info)
-        else: pass
+        
         
 
     def parse_info(self, response):
         item = Test3Item()
-        item["title"] =response.xpath('//*[@id="section-hero"]/div[1]/div[1]/div[2]/div/h1/text()').extract()
+        item["title"] =response.xpath('//*[@id="section-hero"]/div[1]/div[1]/div[2]/div/h1/text()').extract()[0]
         genres_list=response.xpath('//*[@id="section-more-details"]/div[2]/div[2]/div[2]/span/a/text()').extract()
         item["genres"]=' '.join(genres_list)
         item["link"] = response.url
