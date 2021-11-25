@@ -33,7 +33,16 @@ class Ex3Spider(scrapy.Spider):
     def parse_info(self, response):
         item = Test3Item()
         item["title"] =response.xpath('//*[@id="section-hero"]/div[1]/div[1]/div[2]/div/h1/text()').extract()[0] #제목
-        genres_list=response.xpath('//*[@id="section-more-details"]/div[2]/div[2]/div[2]/span/a/text()').extract()#장르
+        genre = response.xpath('//*[@id="section-more-details"]/div[2]/div[1]/div[1]/text()').extract()#장르
+        if '장르' in genre:
+            #오프라인 저장 컨텐츠 다음 장르가 오는 경우
+            genres_list=response.xpath('//*[@id="section-more-details"]/div[2]/div[1]/div[2]/span/a/text()').extract()
+        else: 
+            #오프라인 저장 컨텐츠 없이 바로 장르가 오는 경우
+            genres_list=response.xpath('//*[@id="section-more-details"]/div[2]/div[2]/div[2]/span/a/text()').extract()#장르
+            if not genres_list:
+                #장르 경로가 /a/text()가 아닌 바로 text()
+                genres_list = response.xpath('//*[@id="section-more-details"]/div[2]/div[2]/div[2]/span/text()').extract()
         item["genres"]=' '.join(genres_list)#장르가 리스트 형식으로 오기때문에 문자열 형식으로 바꾸어 준다
         item["link"] = response.url #넷플릭스 링크
         yield item

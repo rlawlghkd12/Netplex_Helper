@@ -28,7 +28,7 @@ FEED_EXPORT_FIELDS=["title","genres","link"]
 # See https://docs.scrapy.org/en/latest/topics/settings.html#download-delay
 # See also autothrottle settings and docs
 #딜레이 속도
-DOWNLOAD_DELAY = 0.1
+DOWNLOAD_DELAY = 0.15
 #CONCURRENT_REQUESTS =0.5
 # The download delay setting will honor only one of:
 #CONCURRENT_REQUESTS_PER_DOMAIN = 16
