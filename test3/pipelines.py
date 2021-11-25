@@ -10,7 +10,7 @@ from itemadapter import ItemAdapter
 
 class Test3Pipeline(object):
     def __init__(self):
-        self.csvwriter = csv.writer(open("test3.csv","w", newline=""))
+        self.csvwriter = csv.writer(open("netflixinfo.csv","w", newline=""))
         self.csvwriter.writerow(["title","genres","link"])
         #self.rowcount =1
         
